@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="aeee6344-30f3-4cb2-b01e-095eb669d12e" >
+		<salesforce:config-with-oauth-connection >
+			<salesforce:oauth-authorization-code consumerKey="3MVG97L7PWbPq6Uy3wFZuJpL5Mg2mH_yoiDoHOyyLLP.fNJP7To7MaHLQufJoAQeenSEWVpYLMuBExCJE7iNZ" consumerSecret="89C36BE228B2F791A38A193EE8CF0D4FD653DCAEFBE455AFFBD2601C2E289B23" authorizationUrl="https://orgfarm-2b51045e03-dev-ed.develop.my.salesforce.com/services/oauth2/authorize" accessTokenUrl="https://orgfarm-2b51045e03-dev-ed.develop.my.salesforce.com/services/oauth2/token"/>
+			<salesforce:oauth-callback-config listenerConfig="HTTP_Listener_config" callbackPath="/callback" authorizePath="/authorize" externalCallbackUrl="http://localhost:8081/callback" />
+			<salesforce:oauth-store-config objectStore="Object_store" />
+		</salesforce:config-with-oauth-connection>
+	</salesforce:sfdc-config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="0b6aa61f-35bc-4d3e-ae14-ab272ab55488" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="9e60c93c-be68-4a61-a03c-bd984bc434a8" />
+	<salesforce:sfdc-config name="Salesforce_Config1" doc:name="Salesforce Config" doc:id="a7edca36-b037-4609-bab8-4d45120147d2" >
+		<salesforce:jwt-connection consumerKey="3MVG97L7PWbPq6Uy3wFZuJpL5Mg2mH_yoiDoHOyyLLP.fNJP7To7MaHLQufJoAQeenSEWVpYLMuBExCJE7iNZ" keyStore="keystore\00Dg500000523Bp.jks" storePassword="mulesoft" principal="likhilchopde.714d097d0bda@agentforce.com" audienceUrl="https://login.salesforce.com" />
+	</salesforce:sfdc-config>
+	<flow name="testingFlow" doc:id="657fa3a3-8253-4b03-b20e-c22837fffcff" >
+		<http:listener doc:name="Listener" doc:id="3fdcb84f-3ee5-409b-b4f2-f47c1344a053" config-ref="HTTP_Listener_config" path="/test"/>
+		<ee:transform doc:name="Transform Message" doc:id="9542854f-a51b-49c6-948a-ebfda93a41e6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"select id ,name from Account"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:query doc:name="Query" doc:id="1a7ca1e1-43ea-4dd6-a6e0-51e46a752216" config-ref="Salesforce_Config1">
+			<salesforce:salesforce-query ><![CDATA[#[payload]]]></salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="3bd35c35-c593-4415-812f-38e8281a80c0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"sizeOF": sizeOf(payload)
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="3e0a8126-2f33-4e7f-9de2-c513e5d5a49f" message="#[payload]"/>
+	</flow>
+</mule>
